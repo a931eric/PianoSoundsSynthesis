@@ -1,0 +1,31 @@
+﻿#pragma kernel StringWave0
+#pragma kernel StringWave1
+#pragma kernel StringWave2
+#define GROUP_SIZE 256
+
+RWStructuredBuffer<float> y;
+RWStructuredBuffer<float> Dty;
+RWStructuredBuffer<float> sampleResult;
+float dt, vv, l, dx;
+int samplePoint,sampleIdx;
+
+[numthreads(GROUP_SIZE,1, 1)]
+void StringWave0 (uint3 id : SV_DispatchThreadID)
+{
+    Dty[id.x] += (y[id.x - 1] - 2 * y[id.x] + y[id.x + 1]) * vv * dt / (dx * dx);
+}
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void StringWave1(uint3 id : SV_DispatchThreadID)
+{
+    y[id.x] +=Dty[id.x]*dt;
+}
+
+[numthreads(1, 1, 1)]
+void StringWave2(uint3 id : SV_DispatchThreadID)//邊界固定
+{
+    y[l] = 0;
+    Dty[l] = 0;
+    sampleResult[sampleIdx] = y[samplePoint];
+    sampleIdx++;
+}
